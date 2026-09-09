@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>甜甜收藏夹 🍬</title>
+<style>
+  :root{
+    --pink:   #FFB3C6;  /* 马卡龙粉 */
+    --yellow: #FFE6A7;  /* 马卡龙黄 */
+    --green:  #B5E2A5;  /* 马卡龙绿 */
+    --blue:   #A7D8F0;  /* 马卡龙蓝 */
+    --purple: #D9C2E0;  /* 马卡龙紫 */
+    --cream:  #FFF7F0;  /* 奶油底 */
+    --ink:    #6B5B5B;  /* 文字色 */
+    --line:   #EADDDD;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100%;
+    padding-bottom:60px;
+  }
+  /* 顶部标题 */
+  header{
+    text-align:center;
+    padding:24px 16px 12px;
+    background:linear-gradient(135deg, var(--pink), var(--yellow));
+    color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.12);
+  }
+  header h1{ font-size:26px; letter-spacing:2px; }
+  header p{ font-size:13px; margin-top:4px; opacity:.92; }
+  /* 切换按钮 */
+  .tabs{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    padding:18px 16px 8px;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    border:none;
+    border-radius:999px;
+    padding:12px 24px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--ink);
+    background:#fff;
+    box-shadow:0 3px 0 var(--line);
+    transition:transform .12s, box-shadow .12s, background .2s;
+    user-select:none;
+  }
+  .tab-btn:hover{ transform:translateY(-1px); }
+  .tab-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--line); }
+  .tab-btn.active{ background:var(--blue); color:#fff; box-shadow:0 3px 0 #7fb8d8; }
+  /* 主容器 */
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:8px 16px 24px;
+  }
+  .page{ display:none; }
+  .page.active{ display:block; animation:fade .25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  /* 添加卡片 */
+  .add-card{
+    background:#fff;
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+    box-shadow:0 4px 14px rgba(180,150,150,.15);
+  }
+  .add-card h2{ font-size:16px; margin-bottom:12px; color:var(--ink); }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .row > input, .row > textarea{
+    flex:1;
+    min-width:120px;
+    border:2px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:14px;
+    color:var(--ink);
+    background:var(--cream);
+    transition:border-color .2s, background .2s;
+  }
+  .row > input:focus, .row > textarea:focus{
+    outline:none; border-color:var(--blue); background:#fff;
+  }
+  .row > textarea{ resize:vertical; min-height:60px; }
+  .btn{
+    border:none;
+    border-radius:12px;
+    padding:10px 18px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    color:#fff;
+    transition:transform .12s, filter .2s;
+  }
+  .btn:hover{ filter:brightness(1.05); }
+  .btn:active{ transform:scale(.96); }
+  .btn-add{ background:var(--green); box-shadow:0 3px 0 #7fb88a; }
+  .btn-add:active{ box-shadow:0 1px 0 #7fb88a; }
+  /* 列表项 */
+  .list{ display:flex; flex-direction:column; gap:14px; }
+  .item{
+    background:#fff;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 4px 14px rgba(180,150,150,.15);
+    position:relative;
+  }
+  .item-name{
+    font-size:16px; font-weight:700; margin-bottom:8px;
+    word-break:break-all;
+  }
+  .item-meta{ font-size:12px; opacity:.6; margin-bottom:10px; word-break:break-all; }
+  .item-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-open{ background:var(--blue); box-shadow:0 3px 0 #7fb8d8; }
+  .btn-open:active{ box-shadow:0 1px 0 #7fb8d8; }
+  .btn-copy{ background:var(--purple); box-shadow:0 3px 0 #b08fc0; }
+  .btn-copy:active{ box-shadow:0 1px 0 #b08fc0; }
+  .btn-del{ background:var(--pink); box-shadow:0 3px 0 #d98a9f; margin-left:auto; }
+  .btn-del:active{ box-shadow:0 1px 0 #d98a9f; }
+  /* 复制项子项 */
+  .copy-list{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+  .copy-item{
+    display:flex; gap:8px; align-items:flex-start;
+    background:var(--cream);
+    border-radius:12px;
+    padding:8px 10px;
+  }
+  .copy-text{
+    flex:1; white-space:pre-wrap; word-break:break-all; font-size:14px; line-height:1.5;
+  }
+  .btn-mini{
+    border:none; border-radius:8px; padding:6px 10px;
+    font-size:12px; cursor:pointer; color:#fff; flex-shrink:0;
+    background:var(--purple); box-shadow:0 2px 0 #b08fc0;
+    transition:transform .12s;
+  }
+  .btn-mini:active{ transform:translateY(2px); box-shadow:none; }
+  /* 空状态 */
+  .empty{
+    text-align:center; padding:40px 16px; color:#b39; opacity:.5;
+  }
+  /* 提示 */
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:#6B5B5B; color:#fff; padding:10px 18px; border-radius:999px;
+    font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+    z-index:99;
+  }
+  .toast.show{ opacity:.95; transform:translateX(-50%) translateY(-4px); }
+  /* 增加复制项输入区 */
+  .copy-input-wrap{
+    border:2px dashed var(--line);
+    border-radius:12px;
+    padding:10px;
+    margin-top:10px;
+    background:var(--cream);
+  }
+  .copy-input-wrap > textarea{
+    width:100%; border:none; background:transparent; resize:vertical; min-height:48px;
+    font-size:14px; color:var(--ink); font-family:inherit;
+  }
+  .copy-input-wrap > textarea:focus{ outline:none; }
+  .copy-add-row{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .copy-add-row .hint{ font-size:12px; opacity:.6; }
+  .add-copy-btn{
+    border:none; border-radius:8px; padding:5px 12px; font-size:12px; cursor:pointer;
+    background:var(--yellow); color:var(--ink); box-shadow:0 2px 0 #d8c489;
+  }
+  .add-copy-btn:active{ transform:translateY(2px); box-shadow:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍬 甜甜收藏夹</h1>
+  <p>网站 &amp; 复制内容 · 永久保存在本地</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-page="page1">🌐 网站收藏</button>
+  <button class="tab-btn" data-page="page2">📋 复制内容</button>
+</div>
+
+<main>
+  <!-- 页面一：网站收藏 -->
+  <section id="page1" class="page active">
+    <div class="add-card">
+      <h2>添加网站</h2>
+      <div class="row">
+        <input id="siteName" type="text" placeholder="备注名字（如：百度）" />
+        <input id="siteUrl" type="text" placeholder="网址（如：https://www.baidu.com）" />
+      </div>
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <button class="btn btn-add" id="addSiteBtn">➕ 添加</button>
+      </div>
+    </div>
+    <div class="list" id="siteList"></div>
+    <div class="empty" id="siteEmpty">还没有收藏网站哦～快添加一个吧 🌸</div>
+  </section>
+
+  <!-- 页面二：复制内容收藏 -->
+  <section id="page2" class="page">
+    <div class="add-card">
+      <h2>添加复制内容</h2>
+      <div class="row">
+        <input id="copyName" type="text" placeholder="备注名字（如：常用签名）" />
+      </div>
+      <div class="copy-input-wrap">
+        <textarea id="copyContent" placeholder="输入要复制的内容（每条可单独复制）..."></textarea>
+        <div class="copy-add-row">
+          <span class="hint">可输入多条，每条用回车分隔</span>
+          <button class="add-copy-btn" id="addCopyItemBtn">➕ 添加一条</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <button class="btn btn-add" id="addCopyBtn">💾 保存</button>
+      </div>
+    </div>
+    <div class="list" id="copyList"></div>
+    <div class="empty" id="copyEmpty">还没有复制内容哦～快添加一个吧 🌷</div>
+  </section>
+</main>
+
+<div class="toast" id="toast">已复制 ✅</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== 数据层（localStorage 永久保存） ===== */
+  var KEY_SITES = "tian_sites_v1";
+  var KEY_COPIES = "tian_copies_v1";
+
+  function load(key){
+    try{ return JSON.parse(localStorage.getItem(key)) || []; }
+    catch(e){ return []; }
+  }
+  function save(key, data){
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  var sites = load(KEY_SITES);
+  var copies = load(KEY_COPIES);
+
+  /* ===== DOM 辅助 ===== */
+  function $(id){ return document.getElementById(id); }
+  function esc(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+  function toast(msg){
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove("show"); }, 1400);
+  }
+  function copyText(text){
+    // 优先用现代 API
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast("已复制 ✅"); })
+        .catch(function(){ fallbackCopy(text); });
+    }else{
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed"; ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); toast("已复制 ✅"); }
+    catch(e){ toast("复制失败"); }
+    document.body.removeChild(ta);
+  }
+  function openSite(url){
+    // 用默认浏览器打开：在浏览器中通过 window.open 实现
+    // 注意：受限于浏览器，可能仍在新标签页打开，而非系统默认浏览器
+    try{
+      if(url && !/^https?:\/\//i.test(url) && !/^mailto:|^tel:/i.test(url)){
+        url = "https://" + url;
+      }
+      window.open(url, "_blank");
+    }catch(e){
+      window.location.href = url;
+    }
+  }
+
+  /* ===== 页面切换 ===== */
+  document.querySelectorAll(".tab-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      var target = btn.getAttribute("data-page");
+      document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("active"); });
+      $(target).classList.add("active");
+    });
+  });
+
+  /* ===== 页面一：网站收藏 ===== */
+  function renderSites(){
+    var list = $("siteList");
+    list.innerHTML = "";
+    $("siteEmpty").style.display = sites.length ? "none" : "block";
+    sites.forEach(function(s){
+      var div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML =
+        '<div class="item-name">🌐 ' + esc(s.name) + '</div>' +
+        '<div class="item-meta">' + esc(s.url) + '</div>' +
+        '<div class="item-actions">' +
+          '<button class="btn btn-open" data-act="open">🔗 打开</button>' +
+          '<button class="btn btn-del" data-act="del">🗑 删除</button>' +
+        '</div>';
+      div.querySelector('[data-act="open"]').addEventListener("click", function(){ openSite(s.url); });
+      div.querySelector('[data-act="del"]').addEventListener("click", function(){
+        if(confirm("删除「" + s.name + "」？")){
+          sites = sites.filter(function(x){ return x.id !== s.id; });
+          save(KEY_SITES, sites); renderSites(); toast("已删除 🗑");
+        }
+      });
+      list.appendChild(div);
+    });
+  }
+  $("addSiteBtn").addEventListener("click", function(){
+    var name = $("siteName").value.trim();
+    var url = $("siteUrl").value.trim();
+    if(!name){ toast("请填写备注名字"); $("siteName").focus(); return; }
+    if(!url){ toast("请填写网址"); $("siteUrl").focus(); return; }
+    sites.push({ id: uid(), name: name, url: url });
+    save(KEY_SITES, sites);
+    $("siteName").value = ""; $("siteUrl").value = "";
+    renderSites(); toast("已添加 ➕");
+  });
+
+  /* ===== 页面二：复制内容收藏 ===== */
+  function renderCopies(){
+    var list = $("copyList");
+    list.innerHTML = "";
+    $("copyEmpty").style.display = copies.length ? "none" : "block";
+    copies.forEach(function(c){
+      var div = document.createElement("div");
+      div.className = "item";
+      var itemsHtml = "";
+      (c.items || []).forEach(function(item, idx){
+        itemsHtml +=
+          '<div class="copy-item">' +
+            '<div class="copy-text">' + esc(item) + '</div>' +
+            '<button class="btn-mini" data-cidx="' + idx + '">📋 复制</button>' +
+          '</div>';
+      });
+      if(!itemsHtml){
+        itemsHtml = '<div class="item-meta">（暂无内容）</div>';
+      }
+      div.innerHTML =
+        '<div class="item-name">📋 ' + esc(c.name) + '</div>' +
+        '<div class="copy-list">' + itemsHtml + '</div>' +
+        '<div class="item-actions" style="margin-top:8px;">' +
+          '<button class="btn btn-del" data-act="del">🗑 删除</button>' +
+        '</div>';
+      // 绑定每个复制按钮
+      div.querySelectorAll(".btn-mini").forEach(function(b){
+        b.addEventListener("click", function(){
+          var idx = parseInt(b.getAttribute("data-cidx"), 10);
+          copyText(c.items[idx]);
+        });
+      });
+      div.querySelector('[data-act="del"]').addEventListener("click", function(){
+        if(confirm("删除「" + c.name + "」？")){
+          copies = copies.filter(function(x){ return x.id !== c.id; });
+          save(KEY_COPIES, copies); renderCopies(); toast("已删除 🗑");
+        }
+      });
+      list.appendChild(div);
+    });
+  }
+  // 保存一个复制内容条目（自动按行拆分多条）
+  $("addCopyBtn").addEventListener("click", function(){
+    var name = $("copyName").value.trim();
+    var content = $("copyContent").value;
+    if(!name){ toast("请填写备注名字"); $("copyName").focus(); return; }
+    if(!content.trim()){ toast("请填写内容"); $("copyContent").focus(); return; }
+    var items = content.split(/\r?\n/).map(function(s){ return s; }).filter(function(s){ return s.trim() !== ""; });
+    if(items.length === 0){ toast("没有有效内容"); return; }
+    copies.push({ id: uid(), name: name, items: items });
+    save(KEY_COPIES, copies);
+    $("copyName").value = ""; $("copyContent").value = "";
+    renderCopies(); toast("已保存 💾");
+  });
+  // “添加一条”按钮：在文本框追加一个占位，方便分条
+  $("addCopyItemBtn").addEventListener("click", function(){
+    var ta = $("copyContent");
+    if(ta.value && !ta.value.endsWith("\n")) ta.value += "\n";
+    ta.value += "新内容" + (ta.value.split(/\r?\n/).length) + "\n";
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+
+  /* ===== 初始渲染 ===== */
+  renderSites();
+  renderCopies();
+})();
+</script>
+</body>
+</html>
