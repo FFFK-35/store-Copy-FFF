@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#FFB3C6" />
+<meta name="description" content="网站收藏 + 复制内容收藏，永久保存在本地" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="甜甜收藏" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" href="icon-512.png" />
+<link rel="apple-touch-icon" href="icon-512.png" />
+<link rel="apple-touch-icon" sizes="192x192" href="icon-512.png" />
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
 <title>甜甜收藏夹 🍬</title>
 <style>
   :root{
@@ -235,6 +246,15 @@
 <script>
 (function(){
   "use strict";
+
+  /* ===== 注册 Service Worker（让浏览器识别为可安装 PWA） ===== */
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("service-worker.js")
+        .then(function(reg){ /* 注册成功，PWA 可被识别为可安装 */ })
+        .catch(function(){ /* 注册失败不影响页面正常使用 */ });
+    });
+  }
 
   /* ===== 数据层（localStorage 永久保存） ===== */
   var KEY_SITES = "tian_sites_v1";
