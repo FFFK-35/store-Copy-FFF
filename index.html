@@ -152,16 +152,16 @@
     display:inline-flex; align-items:center; gap:6px;
     border:none; border-radius:10px;
     padding:9px 16px; font-size:13px; font-weight:500;
-    cursor:pointer; color:#fff; transition:transform .12s, opacity .2s;
+    cursor:pointer; transition:transform .12s, opacity .2s;
   }
   .btn:hover{ opacity:.92; }
   .btn:active{ transform:scale(.97); }
-  .btn-add{ background:var(--accent); }
-  .btn-edit{ background:var(--warning); color:#5a4500; }
-  .btn-open{ background:var(--primary); }
-  .btn-copy{ background:var(--primary-2); }
-  .btn-del{ background:var(--danger); margin-left:auto; }
-  .btn-save{ background:var(--primary); }
+  .btn-add{ background:var(--accent); color:var(--accent-text); }
+  .btn-edit{ background:var(--warning); color:var(--warning-text); }
+  .btn-open{ background:var(--primary); color:var(--primary-text); }
+  .btn-copy{ background:var(--primary-2); color:var(--primary-2-text); }
+  .btn-del{ background:var(--danger); color:var(--danger-text); margin-left:auto; }
+  .btn-save{ background:var(--primary); color:var(--primary-text); }
 
   /* 列表项 */
   .list{ display:flex; flex-direction:column; gap:12px; }
@@ -183,8 +183,8 @@
   .btn-mini{
     display:inline-flex; align-items:center; gap:4px;
     border:none; border-radius:8px; padding:6px 10px;
-    font-size:12px; cursor:pointer; color:#fff; flex-shrink:0;
-    background:var(--primary-2); transition:opacity .2s;
+    font-size:12px; cursor:pointer; flex-shrink:0;
+    background:var(--primary-2); color:var(--primary-2-text); transition:opacity .2s;
   }
   .btn-mini:hover{ opacity:.88; }
 
@@ -213,7 +213,7 @@
   .add-copy-btn{
     display:inline-flex; align-items:center; gap:4px;
     border:none; border-radius:8px; padding:5px 12px; font-size:12px; cursor:pointer;
-    background:var(--primary-2); color:#fff; transition:opacity .2s;
+    background:var(--primary-2); color:var(--primary-2-text); transition:opacity .2s;
   }
   .add-copy-btn:hover{ opacity:.88; }
 
@@ -305,11 +305,12 @@
   #introAuthor .char{
     display:inline-block;
     opacity:0;
-    animation:charIn .4s forwards;
+    transform:translateY(8px);
+    transition:opacity .3s ease, transform .3s ease;
   }
-  @keyframes charIn{
-    from{ opacity:0; transform:translateY(6px); }
-    to{ opacity:1; transform:translateY(0); }
+  #introAuthor .char.in{
+    opacity:1;
+    transform:translateY(0);
   }
   #skipBtn{
     position:absolute; top:16px; right:16px;
@@ -521,38 +522,38 @@
     return "#"+[r,g,b].map(function(x){return x.toString(16).padStart(2,"0");}).join("");
   }
 
-  /* ===== 主题数据（含语义色） ===== */
+  /* ===== 主题数据（严格使用用户提供的低饱和色号） ===== */
   var THEMES = [
     { name:"Macaron", bg:"#F7F8FA", card:"#FFFFFF", ink:"#2D3142", line:"#E8EAED",
       c1:"#6C5CE7", c2:"#A29BFE", c3:"#00B894", c4:"#55EFC4", c5:"#FF7675",
       primary:"#6C5CE7", accent:"#00B894", warning:"#F0A500", danger:"#FF7675", title:"#6C5CE7" },
-    { name:"薄荷曼波", bg:"#F9F4EA", card:"#FFFFFF", ink:"#5a4a42", line:"#E8DDD4",
-      c1:"#CFE4DD", c2:"#FCD3D5", c3:"#8D6C63", c4:"#CFE4DD", c5:"#F9F4EA",
-      primary:"#8D6C63", accent:"#5B8C7E", warning:"#C99A6E", danger:"#C97B7B", title:"#8D6C63" },
-    { name:"瓦尔登湖", bg:"#ECF7F4", card:"#FFFFFF", ink:"#2a5a6a", line:"#D4E8E2",
-      c1:"#CAEBED", c2:"#63BAD9", c3:"#B5DAE9", c4:"#63BAD9", c5:"#CCE7D9",
-      primary:"#2E86AB", accent:"#2A9D8F", warning:"#E8A33D", danger:"#E07A7A", title:"#2E86AB" },
-    { name:"美式复古", bg:"#ECF7F4", card:"#FFFFFF", ink:"#8D6C63", line:"#D4E8E2",
-      c1:"#CAEBED", c2:"#63BAD9", c3:"#B5DAE9", c4:"#8D6C63", c5:"#CCE7D9",
-      primary:"#8D6C63", accent:"#2E86AB", warning:"#E8A33D", danger:"#C97B7B", title:"#8D6C63" },
+    { name:"薄荷曼波", bg:"#F9F4EA", card:"#FFFFFF", ink:"#8D6C63", line:"#F0E8E0",
+      c1:"#CFE4DD", c2:"#F9F4EA", c3:"#FCD3D5", c4:"#8D6C63", c5:"#CFE4DD",
+      primary:"#8D6C63", accent:"#CFE4DD", warning:"#FCD3D5", danger:"#D4888A", title:"#8D6C63" },
+    { name:"瓦尔登湖", bg:"#F0FAFA", card:"#FFFFFF", ink:"#3A6A7A", line:"#D4E8E2",
+      c1:"#CAEBED", c2:"#CCE7D9", c3:"#63BAD9", c4:"#B5DAE9", c5:"#CAEBED",
+      primary:"#63BAD9", accent:"#CAEBED", warning:"#B5DAE9", danger:"#7AB8C9", title:"#3A6A7A" },
+    { name:"美式复古", bg:"#F0FAFA", card:"#FFFFFF", ink:"#8D6C63", line:"#D4E8E2",
+      c1:"#CAEBED", c2:"#CCE7D9", c3:"#63BAD9", c4:"#B5DAE9", c5:"#8D6C63",
+      primary:"#8D6C63", accent:"#63BAD9", warning:"#B5DAE9", danger:"#C97B7B", title:"#8D6C63" },
     { name:"先帝最爱", bg:"#EFE4D4", card:"#FFFFFF", ink:"#6B4550", line:"#E0D2C2",
-      c1:"#F5C7C9", c2:"#F8819B", c3:"#B9D9EA", c4:"#F8819B", c5:"#EFE4D4",
-      primary:"#D85C7B", accent:"#4A9BC4", warning:"#D9A441", danger:"#C95353", title:"#D85C7B" },
-    { name:"青提芭乐", bg:"#F6FCE8", card:"#FFFFFF", ink:"#5a4a3a", line:"#E0E8CC",
-      c1:"#FED0D6", c2:"#FF82A2", c3:"#BDDE93", c4:"#FF82A2", c5:"#E4F6A9",
-      primary:"#E05580", accent:"#6BA84F", warning:"#D9A441", danger:"#C95353", title:"#E05580" },
+      c1:"#F5C7C9", c2:"#EFE4D4", c3:"#F8819B", c4:"#B9D9EA", c5:"#F5C7C9",
+      primary:"#F8819B", accent:"#B9D9EA", warning:"#F5C7C9", danger:"#E07080", title:"#D85C7B" },
+    { name:"青提芭乐", bg:"#F6FCE8", card:"#FFFFFF", ink:"#6B4530", line:"#E0E8CC",
+      c1:"#FED0D6", c2:"#E4F6A9", c3:"#FF82A2", c4:"#BDDE93", c5:"#FED0D6",
+      primary:"#FF82A2", accent:"#BDDE93", warning:"#E4F6A9", danger:"#E87088", title:"#FF82A2" },
     { name:"椰风海岛", bg:"#E8F0F8", card:"#FFFFFF", ink:"#1a4a7a", line:"#D4E0EC",
-      c1:"#95B4E0", c2:"#225DAB", c3:"#CADEC3", c4:"#225DAB", c5:"#CBAF98",
-      primary:"#225DAB", accent:"#2E8B57", warning:"#D9A441", danger:"#C95353", title:"#225DAB" },
-    { name:"浮光跃金", bg:"#F5F1E4", card:"#FFFFFF", ink:"#4a4535", line:"#E0D8C8",
+      c1:"#95B4E0", c2:"#CADEC3", c3:"#225DAB", c4:"#CBAF98", c5:"#95B4E0",
+      primary:"#225DAB", accent:"#95B4E0", warning:"#CBAF98", danger:"#C08080", title:"#225DAB" },
+    { name:"浮光跃金", bg:"#F5F1E4", card:"#FFFFFF", ink:"#5A5040", line:"#E0D8C8",
       c1:"#C8D4C0", c2:"#F1D996", c3:"#799B84", c4:"#B69F8A", c5:"#C8D4C0",
-      primary:"#5A7A68", accent:"#B8860B", warning:"#C9A24A", danger:"#B87070", title:"#5A7A68" },
-    { name:"橘子汽水", bg:"#FFF8E8", card:"#FFFFFF", ink:"#5a3a1a", line:"#F0E0B8",
+      primary:"#799B84", accent:"#F1D996", warning:"#B69F8A", danger:"#C08070", title:"#799B84" },
+    { name:"橘子汽水", bg:"#FFF8E8", card:"#FFFFFF", ink:"#6B3A15", line:"#F0E0B8",
       c1:"#FE8F29", c2:"#FAE593", c3:"#849C4D", c4:"#C5863C", c5:"#FAE593",
-      primary:"#E07A1A", accent:"#6B8040", warning:"#C5863C", danger:"#C95353", title:"#E07A1A" },
+      primary:"#FE8F29", accent:"#849C4D", warning:"#FAE593", danger:"#C5863C", title:"#FE8F29" },
     { name:"海盐葡萄", bg:"#EFE4D4", card:"#FFFFFF", ink:"#302B58", line:"#DCD0E0",
-      c1:"#B6A9C8", c2:"#302B58", c3:"#9078AC", c4:"#9078AC", c5:"#EFE4D4",
-      primary:"#302B58", accent:"#7A5FA0", warning:"#C9A24A", danger:"#A05060", title:"#302B58" }
+      c1:"#B6A9C8", c2:"#EFE4D4", c3:"#302B58", c4:"#9078AC", c5:"#B6A9C8",
+      primary:"#302B58", accent:"#9078AC", warning:"#B6A9C8", danger:"#A05060", title:"#302B58" }
   ];
 
   /* 数据层 */
@@ -563,7 +564,17 @@
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
   var sites=load(KEY_SITES)||[], copies=load(KEY_COPIES)||[], links=load(KEY_LINKS)||[];
 
-  /* 主题应用（联动所有语义色） */
+  /* 亮度检测：背景色浅时用深色文字，深时用白色文字 */
+  function luminance(hex){
+    var h = String(hex).replace("#","");
+    var r = parseInt(h.substr(0,2),16);
+    var g = parseInt(h.substr(2,2),16);
+    var b = parseInt(h.substr(4,2),16);
+    return 0.299*r + 0.587*g + 0.114*b;
+  }
+  function pickTextColor(bg){ return luminance(bg) > 155 ? "#2D3142" : "#FFFFFF"; }
+
+  /* 主题应用（联动所有语义色 + 按钮文字自动适配） */
   var currentTheme = load(KEY_THEME) || "Macaron";
   function applyTheme(name){
     var t = THEMES.find(function(x){ return x.name===name; }) || THEMES[0];
@@ -578,6 +589,15 @@
     r.setProperty("--warning",t.warning);    r.setProperty("--warning-2",lighten(t.warning,.4));
     r.setProperty("--danger",t.danger);      r.setProperty("--danger-2",lighten(t.danger,.4));
     r.setProperty("--title",t.title);
+    // 按钮文字颜色根据背景亮度自动选择（浅底深字 / 深底白字）
+    r.setProperty("--primary-text", pickTextColor(t.primary));
+    r.setProperty("--accent-text",  pickTextColor(t.accent));
+    r.setProperty("--warning-text", pickTextColor(t.warning));
+    r.setProperty("--danger-text",  pickTextColor(t.danger));
+    r.setProperty("--primary-2-text", pickTextColor(lighten(t.primary,.4)));
+    r.setProperty("--accent-2-text",  pickTextColor(lighten(t.accent,.4)));
+    r.setProperty("--warning-2-text", pickTextColor(lighten(t.warning,.4)));
+    r.setProperty("--danger-2-text",  pickTextColor(lighten(t.danger,.4)));
     document.querySelector('meta[name="theme-color"]').setAttribute("content", t.primary);
     currentTheme = t.name; save(KEY_THEME, t.name);
   }
@@ -970,15 +990,18 @@
       var text = "—— Fnkai";
       authorEl.innerHTML = "";
       authorEl.classList.add("show");
+      var spans = [];
       for(var i=0; i<text.length; i++){
-        (function(ch, idx){
-          var span = document.createElement("span");
-          span.className = "char";
-          span.textContent = ch === " " ? "\u00A0" : ch;
-          span.style.animationDelay = (idx * 0.08) + "s";
-          authorEl.appendChild(span);
-        })(text[i], i);
+        var span = document.createElement("span");
+        span.className = "char";
+        span.textContent = text[i] === " " ? "\u00A0" : text[i];
+        authorEl.appendChild(span);
+        spans.push(span);
       }
+      // 逐字显示，每个字间隔 90ms
+      spans.forEach(function(s, i){
+        setTimeout(function(){ s.classList.add("in"); }, i * 90);
+      });
     }
 
     function finish(){
