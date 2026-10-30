@@ -279,20 +279,46 @@
   /* ===== 开场动画 ===== */
   #introScreen{
     position:fixed; inset:0; z-index:9999;
-    background:var(--primary);
+    background:linear-gradient(135deg, #CFE4DD 0%, #B5DAE9 60%, #EFE4D4 100%);
     display:flex; align-items:center; justify-content:center;
     overflow:hidden; transition:opacity .5s ease;
   }
   #introScreen.hide{ opacity:0; pointer-events:none; }
   #introCanvas{ display:block; }
+  #introAuthor{
+    position:absolute;
+    bottom:26%;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:15px;
+    font-family:"Inter","PingFang SC",sans-serif;
+    letter-spacing:3px;
+    background:linear-gradient(90deg, #F8819B 0%, #B6A9C8 50%, #63BAD9 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    white-space:nowrap;
+    opacity:0;
+    transition:opacity .6s ease;
+  }
+  #introAuthor.show{ opacity:1; }
+  #introAuthor .char{
+    display:inline-block;
+    opacity:0;
+    animation:charIn .4s forwards;
+  }
+  @keyframes charIn{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
   #skipBtn{
     position:absolute; top:16px; right:16px;
-    background:rgba(255,255,255,.2); color:#fff;
-    border:1px solid rgba(255,255,255,.4); border-radius:999px;
+    background:rgba(255,255,255,.5); color:#8D6C63;
+    border:1px solid rgba(255,255,255,.7); border-radius:999px;
     padding:8px 18px; font-size:13px; cursor:pointer;
     backdrop-filter:blur(8px); transition:background .2s;
   }
-  #skipBtn:hover{ background:rgba(255,255,255,.35); }
+  #skipBtn:hover{ background:rgba(255,255,255,.75); }
 </style>
 </head>
 <body>
@@ -300,6 +326,7 @@
 <!-- 开场动画 -->
 <div id="introScreen">
   <canvas id="introCanvas"></canvas>
+  <div id="introAuthor"></div>
   <button id="skipBtn">跳过 ›</button>
 </div>
 
@@ -552,9 +579,6 @@
     r.setProperty("--danger",t.danger);      r.setProperty("--danger-2",lighten(t.danger,.4));
     r.setProperty("--title",t.title);
     document.querySelector('meta[name="theme-color"]').setAttribute("content", t.primary);
-    // 开场动画背景也同步
-    var intro = document.getElementById("introScreen");
-    if(intro) intro.style.background = t.primary;
     currentTheme = t.name; save(KEY_THEME, t.name);
   }
   applyTheme(currentTheme);
@@ -917,7 +941,8 @@
     }
 
     var targets = getTextPoints("Macaron");
-    var colors = ["#ffffff","#FFE6A7","#B5E2A5","#A7D8F0","#D9C2E0"];
+    // 波点以白色为主（组成白色文字），少量马卡龙色点缀
+    var colors = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#FCD3D5","#F1D996"];
     var particles = targets.map(function(p){
       var angle = Math.random() * Math.PI * 2;
       var dist = Math.max(cw, ch) * (0.6 + Math.random()*0.5);
@@ -932,10 +957,29 @@
       };
     });
 
-    var phase = "gather";   // gather -> hold -> shake -> scatter -> done
+    var phase = "gather";   // gather -> hold -> author -> done
     var phaseFrame = 0;
     var raf = null;
     var finished = false;
+    var authorEl = document.getElementById("introAuthor");
+    var authorShown = false;
+
+    function showAuthor(){
+      if(authorShown || !authorEl) return;
+      authorShown = true;
+      var text = "—— Fnkai";
+      authorEl.innerHTML = "";
+      authorEl.classList.add("show");
+      for(var i=0; i<text.length; i++){
+        (function(ch, idx){
+          var span = document.createElement("span");
+          span.className = "char";
+          span.textContent = ch === " " ? "\u00A0" : ch;
+          span.style.animationDelay = (idx * 0.08) + "s";
+          authorEl.appendChild(span);
+        })(text[i], i);
+      }
+    }
 
     function finish(){
       if(finished) return;
@@ -943,17 +987,6 @@
       if(raf) cancelAnimationFrame(raf);
       screen.classList.add("hide");
       setTimeout(function(){ if(screen.parentNode) screen.parentNode.removeChild(screen); }, 600);
-    }
-
-    function explode(){
-      var cx = cw/2, cy = ch/2;
-      particles.forEach(function(p){
-        var dx = p.x - cx, dy = p.y - cy;
-        var dist = Math.sqrt(dx*dx+dy*dy) || 1;
-        var force = 4 + Math.random()*5;
-        p.vx = dx/dist*force + (Math.random()-0.5)*3;
-        p.vy = dy/dist*force + (Math.random()-0.5)*3;
-      });
     }
 
     function step(){
@@ -965,17 +998,8 @@
           p.x += (p.tx - p.x) * 0.07;
           p.y += (p.ty - p.y) * 0.07;
         } else if(phase === "hold"){
-          p.x = p.tx + (Math.random()-0.5)*1.2;
-          p.y = p.ty + (Math.random()-0.5)*1.2;
-        } else if(phase === "shake"){
-          var s = 3 + Math.random()*4;
-          p.x = p.tx + (Math.random()-0.5)*s;
-          p.y = p.ty + (Math.random()-0.5)*s;
-        } else if(phase === "scatter"){
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vx *= 0.97;
-          p.vy = p.vy * 0.97 + 0.04;
+          p.x = p.tx + (Math.random()-0.5)*1.0;
+          p.y = p.ty + (Math.random()-0.5)*1.0;
         }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
@@ -984,10 +1008,9 @@
       });
 
       // 阶段切换
-      if(phase === "gather" && phaseFrame > 85){ phase = "hold"; phaseFrame = 0; }
-      else if(phase === "hold" && phaseFrame > 45){ phase = "shake"; phaseFrame = 0; }
-      else if(phase === "shake" && phaseFrame > 18){ explode(); phase = "scatter"; phaseFrame = 0; }
-      else if(phase === "scatter" && phaseFrame > 75){ finish(); return; }
+      if(phase === "gather" && phaseFrame > 90){ phase = "hold"; phaseFrame = 0; }
+      else if(phase === "hold" && phaseFrame === 10){ showAuthor(); }
+      else if(phase === "hold" && phaseFrame > 130){ finish(); return; }
 
       raf = requestAnimationFrame(step);
     }
