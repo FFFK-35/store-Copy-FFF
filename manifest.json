@@ -1,13 +1,13 @@
 {
-  "name": "甜甜收藏夹",
-  "short_name": "甜甜收藏",
-  "description": "网站收藏 + 复制内容收藏，永久保存在本地",
+  "name": "Macaron",
+  "short_name": "Macaron",
+  "description": "A clean local bookmark manager for sites, snippets and media links",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#FFF7F0",
-  "theme_color": "#FFB3C6",
+  "background_color": "#F7F8FA",
+  "theme_color": "#6C5CE7",
   "lang": "zh-CN",
   "icons": [
     {
