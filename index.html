@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#FFB3C6" />
-<meta name="description" content="网站收藏 + 复制内容收藏，永久保存在本地" />
+<meta name="description" content="网站收藏 + 复制内容 + 链接收藏，永久保存在本地" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="甜甜收藏" />
@@ -16,194 +16,314 @@
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
 <title>甜甜收藏夹 🍬</title>
 <style>
+  /* ===== 主题变量（默认马卡龙，由 JS 动态改写） ===== */
   :root{
-    --pink:   #FFB3C6;  /* 马卡龙粉 */
-    --yellow: #FFE6A7;  /* 马卡龙黄 */
-    --green:  #B5E2A5;  /* 马卡龙绿 */
-    --blue:   #A7D8F0;  /* 马卡龙蓝 */
-    --purple: #D9C2E0;  /* 马卡龙紫 */
-    --cream:  #FFF7F0;  /* 奶油底 */
-    --ink:    #6B5B5B;  /* 文字色 */
-    --line:   #EADDDD;
+    --bg:    #FFF7F0;
+    --card:  #ffffff;
+    --ink:   #6B5B5B;
+    --line:  #EADDDD;
+    --c1:    #FFB3C6; /* 粉 */
+    --c2:    #FFE6A7; /* 黄 */
+    --c3:    #B5E2A5; /* 绿 */
+    --c4:    #A7D8F0; /* 蓝 */
+    --c5:    #D9C2E0; /* 紫 */
+    --shadow:rgba(180,150,150,.18);
   }
+  /* 暗模式覆盖 */
+  body.dark{
+    --bg:    #1f1b2e;
+    --card:  #2a2540;
+    --ink:   #e8e0f0;
+    --line:  #3d3658;
+    --shadow:rgba(0,0,0,.4);
+  }
+  body.dark .add-card, body.dark .item{ background:var(--card); }
+  body.dark .row > input, body.dark .row > textarea, body.dark .copy-input-wrap{ background:#241f33; color:var(--ink); }
+  body.dark .copy-item{ background:#241f33; }
+  body.dark .modal-content{ background:var(--card); }
+  body.dark .theme-chip{ border-color:var(--line); }
+
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
   body{
     font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-    background:var(--cream);
+    background:var(--bg);
     color:var(--ink);
     min-height:100%;
     padding-bottom:60px;
+    transition:background .3s, color .3s;
   }
-  /* 顶部标题 */
+
+  /* ===== 顶部 ===== */
   header{
+    position:relative;
     text-align:center;
-    padding:24px 16px 12px;
-    background:linear-gradient(135deg, var(--pink), var(--yellow));
+    padding:20px 16px 12px;
+    background:linear-gradient(135deg, var(--c1), var(--c2));
     color:#fff;
     text-shadow:0 1px 2px rgba(0,0,0,.12);
   }
   header h1{ font-size:26px; letter-spacing:2px; }
   header p{ font-size:13px; margin-top:4px; opacity:.92; }
-  /* 切换按钮 */
+  .top-btn{
+    position:absolute; top:14px;
+    width:40px; height:40px; border-radius:50%;
+    border:none; background:rgba(255,255,255,.35); color:#fff;
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .2s, transform .12s;
+  }
+  .top-btn:hover{ background:rgba(255,255,255,.55); }
+  .top-btn:active{ transform:scale(.92); }
+  .top-left{ left:12px; }
+  .top-right{ right:12px; }
+
+  /* ===== 下拉菜单 ===== */
+  .dropdown{
+    position:absolute; top:56px; left:12px;
+    background:var(--card); border-radius:14px;
+    box-shadow:0 6px 20px var(--shadow);
+    padding:6px; min-width:140px;
+    display:none; z-index:200;
+  }
+  .dropdown.show{ display:block; animation:fade .2s ease; }
+  .dropdown-item{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 12px; border-radius:10px;
+    cursor:pointer; font-size:14px; color:var(--ink);
+    transition:background .15s;
+  }
+  .dropdown-item:hover{ background:var(--bg); }
+
+  /* ===== 切换标签 ===== */
   .tabs{
-    display:flex;
-    justify-content:center;
-    gap:12px;
-    padding:18px 16px 8px;
-    flex-wrap:wrap;
+    display:flex; justify-content:center; gap:10px;
+    padding:16px 16px 8px; flex-wrap:wrap;
   }
   .tab-btn{
-    border:none;
-    border-radius:999px;
-    padding:12px 24px;
-    font-size:15px;
-    font-weight:600;
-    cursor:pointer;
-    color:var(--ink);
-    background:#fff;
+    border:none; border-radius:999px;
+    padding:11px 20px; font-size:14px; font-weight:600;
+    cursor:pointer; color:var(--ink); background:var(--card);
     box-shadow:0 3px 0 var(--line);
     transition:transform .12s, box-shadow .12s, background .2s;
     user-select:none;
   }
   .tab-btn:hover{ transform:translateY(-1px); }
   .tab-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--line); }
-  .tab-btn.active{ background:var(--blue); color:#fff; box-shadow:0 3px 0 #7fb8d8; }
-  /* 主容器 */
-  main{
-    max-width:760px;
-    margin:0 auto;
-    padding:8px 16px 24px;
-  }
+  .tab-btn.active{ background:var(--c4); color:#fff; box-shadow:0 3px 0 var(--c3); }
+
+  /* ===== 主容器 ===== */
+  main{ max-width:780px; margin:0 auto; padding:8px 16px 24px; }
   .page{ display:none; }
   .page.active{ display:block; animation:fade .25s ease; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-  /* 添加卡片 */
+
+  /* ===== 搜索框 ===== */
+  .search-box{
+    display:flex; align-items:center; gap:8px;
+    background:var(--card); border-radius:14px;
+    padding:8px 14px; margin-bottom:14px;
+    box-shadow:0 3px 10px var(--shadow);
+  }
+  .search-box input{
+    flex:1; border:none; background:transparent;
+    font-size:14px; color:var(--ink); outline:none;
+  }
+  .search-box input::placeholder{ opacity:.5; }
+
+  /* ===== 添加卡片 ===== */
   .add-card{
-    background:#fff;
-    border-radius:18px;
-    padding:18px;
-    margin-bottom:18px;
-    box-shadow:0 4px 14px rgba(180,150,150,.15);
+    background:var(--card); border-radius:18px;
+    padding:18px; margin-bottom:18px;
+    box-shadow:0 4px 14px var(--shadow);
   }
   .add-card h2{ font-size:16px; margin-bottom:12px; color:var(--ink); }
   .row{ display:flex; gap:10px; flex-wrap:wrap; }
   .row > input, .row > textarea{
-    flex:1;
-    min-width:120px;
-    border:2px solid var(--line);
-    border-radius:12px;
-    padding:10px 12px;
-    font-size:14px;
-    color:var(--ink);
-    background:var(--cream);
-    transition:border-color .2s, background .2s;
+    flex:1; min-width:120px;
+    border:2px solid var(--line); border-radius:12px;
+    padding:10px 12px; font-size:14px; color:var(--ink);
+    background:var(--bg); transition:border-color .2s, background .2s;
   }
-  .row > input:focus, .row > textarea:focus{
-    outline:none; border-color:var(--blue); background:#fff;
-  }
-  .row > textarea{ resize:vertical; min-height:60px; }
+  .row > input:focus, .row > textarea:focus{ outline:none; border-color:var(--c4); background:var(--card); }
+  .row > textarea{ resize:vertical; min-height:60px; font-family:inherit; }
+
   .btn{
-    border:none;
-    border-radius:12px;
-    padding:10px 18px;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    color:#fff;
+    border:none; border-radius:12px;
+    padding:10px 18px; font-size:14px; font-weight:600;
+    cursor:pointer; color:#fff;
     transition:transform .12s, filter .2s;
   }
   .btn:hover{ filter:brightness(1.05); }
   .btn:active{ transform:scale(.96); }
-  .btn-add{ background:var(--green); box-shadow:0 3px 0 #7fb88a; }
-  .btn-add:active{ box-shadow:0 1px 0 #7fb88a; }
-  /* 列表项 */
+  .btn-add{ background:var(--c3); box-shadow:0 3px 0 var(--c1); }
+  .btn-add:active{ box-shadow:0 1px 0 var(--c1); }
+  .btn-edit{ background:var(--c2); color:#6B5B5B; box-shadow:0 3px 0 #d8c489; }
+  .btn-edit:active{ box-shadow:0 1px 0 #d8c489; }
+
+  /* ===== 列表项 ===== */
   .list{ display:flex; flex-direction:column; gap:14px; }
   .item{
-    background:#fff;
-    border-radius:18px;
-    padding:16px;
-    box-shadow:0 4px 14px rgba(180,150,150,.15);
+    background:var(--card); border-radius:18px;
+    padding:16px; box-shadow:0 4px 14px var(--shadow);
     position:relative;
   }
-  .item-name{
-    font-size:16px; font-weight:700; margin-bottom:8px;
-    word-break:break-all;
-  }
+  .item-name{ font-size:16px; font-weight:700; margin-bottom:8px; word-break:break-all; }
   .item-meta{ font-size:12px; opacity:.6; margin-bottom:10px; word-break:break-all; }
   .item-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-  .btn-open{ background:var(--blue); box-shadow:0 3px 0 #7fb8d8; }
-  .btn-open:active{ box-shadow:0 1px 0 #7fb8d8; }
-  .btn-copy{ background:var(--purple); box-shadow:0 3px 0 #b08fc0; }
+  .btn-open{ background:var(--c4); box-shadow:0 3px 0 var(--c5); }
+  .btn-open:active{ box-shadow:0 1px 0 var(--c5); }
+  .btn-copy{ background:var(--c5); box-shadow:0 3px 0 #b08fc0; }
   .btn-copy:active{ box-shadow:0 1px 0 #b08fc0; }
-  .btn-del{ background:var(--pink); box-shadow:0 3px 0 #d98a9f; margin-left:auto; }
+  .btn-del{ background:var(--c1); box-shadow:0 3px 0 #d98a9f; margin-left:auto; }
   .btn-del:active{ box-shadow:0 1px 0 #d98a9f; }
-  /* 复制项子项 */
+
+  /* ===== 复制项子项 ===== */
   .copy-list{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
   .copy-item{
     display:flex; gap:8px; align-items:flex-start;
-    background:var(--cream);
-    border-radius:12px;
-    padding:8px 10px;
+    background:var(--bg); border-radius:12px; padding:8px 10px;
   }
-  .copy-text{
-    flex:1; white-space:pre-wrap; word-break:break-all; font-size:14px; line-height:1.5;
-  }
+  .copy-text{ flex:1; white-space:pre-wrap; word-break:break-all; font-size:14px; line-height:1.5; }
   .btn-mini{
     border:none; border-radius:8px; padding:6px 10px;
     font-size:12px; cursor:pointer; color:#fff; flex-shrink:0;
-    background:var(--purple); box-shadow:0 2px 0 #b08fc0;
+    background:var(--c5); box-shadow:0 2px 0 #b08fc0;
     transition:transform .12s;
   }
   .btn-mini:active{ transform:translateY(2px); box-shadow:none; }
-  /* 空状态 */
-  .empty{
-    text-align:center; padding:40px 16px; color:#b39; opacity:.5;
-  }
-  /* 提示 */
+
+  /* ===== 空状态 ===== */
+  .empty{ text-align:center; padding:40px 16px; opacity:.5; }
+
+  /* ===== 提示 ===== */
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
     background:#6B5B5B; color:#fff; padding:10px 18px; border-radius:999px;
-    font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
-    z-index:99;
+    font-size:13px; opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; z-index:300;
   }
+  body.dark .toast{ background:var(--c4); color:#fff; }
   .toast.show{ opacity:.95; transform:translateX(-50%) translateY(-4px); }
-  /* 增加复制项输入区 */
+
+  /* ===== 复制内容输入区 ===== */
   .copy-input-wrap{
-    border:2px dashed var(--line);
-    border-radius:12px;
-    padding:10px;
-    margin-top:10px;
-    background:var(--cream);
+    border:2px dashed var(--line); border-radius:12px;
+    padding:10px; margin-top:10px; background:var(--bg);
   }
   .copy-input-wrap > textarea{
-    width:100%; border:none; background:transparent; resize:vertical; min-height:48px;
-    font-size:14px; color:var(--ink); font-family:inherit;
+    width:100%; border:none; background:transparent; resize:vertical;
+    min-height:48px; font-size:14px; color:var(--ink); font-family:inherit;
   }
   .copy-input-wrap > textarea:focus{ outline:none; }
   .copy-add-row{ display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
   .copy-add-row .hint{ font-size:12px; opacity:.6; }
   .add-copy-btn{
     border:none; border-radius:8px; padding:5px 12px; font-size:12px; cursor:pointer;
-    background:var(--yellow); color:var(--ink); box-shadow:0 2px 0 #d8c489;
+    background:var(--c2); color:#6B5B5B; box-shadow:0 2px 0 #d8c489;
   }
   .add-copy-btn:active{ transform:translateY(2px); box-shadow:none; }
+
+  /* ===== 链接预览 ===== */
+  .link-preview{
+    margin-top:10px; border-radius:12px; overflow:hidden;
+    background:var(--bg); border:1px solid var(--line);
+  }
+  .link-preview img, .link-preview video{
+    max-width:100%; max-height:320px; display:block; margin:0 auto;
+  }
+  .link-preview audio{ width:100%; display:block; }
+  .link-preview iframe{
+    width:100%; height:260px; border:none; display:block; background:#fff;
+  }
+  .link-preview .preview-fail{
+    padding:14px; text-align:center; font-size:13px; opacity:.5;
+  }
+  .link-url{
+    font-size:12px; opacity:.6; word-break:break-all; margin-bottom:6px;
+  }
+
+  /* ===== 弹窗 ===== */
+  .modal-mask{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center;
+    padding:20px; z-index:400;
+  }
+  .modal-mask.show{ display:flex; animation:fade .2s ease; }
+  .modal-content{
+    background:var(--card); border-radius:20px;
+    padding:22px; width:100%; max-width:480px;
+    max-height:86vh; overflow-y:auto;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+  }
+  .modal-content h3{ font-size:18px; margin-bottom:14px; }
+  .modal-close{
+    float:right; border:none; background:transparent;
+    font-size:22px; cursor:pointer; color:var(--ink); opacity:.5;
+  }
+  .modal-close:hover{ opacity:1; }
+
+  /* 编辑弹窗里的条目行 */
+  .edit-row{
+    display:flex; gap:8px; align-items:center;
+    margin-bottom:8px;
+  }
+  .edit-row textarea{
+    flex:1; border:2px solid var(--line); border-radius:10px;
+    padding:8px 10px; font-size:14px; color:var(--ink);
+    background:var(--bg); resize:vertical; min-height:40px;
+    font-family:inherit;
+  }
+  .edit-row textarea:focus{ outline:none; border-color:var(--c4); }
+  .edit-row .btn-mini{ background:var(--c1); box-shadow:0 2px 0 #d98a9f; }
+  .edit-name-input{
+    width:100%; border:2px solid var(--line); border-radius:12px;
+    padding:10px 12px; font-size:15px; color:var(--ink);
+    background:var(--bg); margin-bottom:12px;
+  }
+  .edit-name-input:focus{ outline:none; border-color:var(--c4); }
+
+  /* ===== 装扮主题卡片 ===== */
+  .theme-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+  }
+  .theme-chip{
+    border:2px solid var(--line); border-radius:14px; padding:12px;
+    cursor:pointer; transition:transform .12s, border-color .2s;
+    background:var(--bg);
+  }
+  .theme-chip:hover{ transform:translateY(-2px); }
+  .theme-chip.active{ border-color:var(--c4); box-shadow:0 0 0 3px var(--c4); }
+  .theme-chip .colors{
+    display:flex; gap:4px; height:28px; border-radius:8px; overflow:hidden; margin-bottom:8px;
+  }
+  .theme-chip .colors span{ flex:1; }
+  .theme-chip .tname{ font-size:13px; font-weight:600; text-align:center; }
 </style>
 </head>
 <body>
 <header>
+  <button class="top-btn top-left" id="menuBtn" title="菜单">⋮</button>
+  <button class="top-btn top-right" id="modeBtn" title="日夜切换">☀️</button>
   <h1>🍬 甜甜收藏夹</h1>
-  <p>网站 &amp; 复制内容 · 永久保存在本地</p>
+  <p>网站 · 复制内容 · 链接收藏 · 永久保存在本地</p>
+
+  <!-- 左上角下拉菜单 -->
+  <div class="dropdown" id="topMenu">
+    <div class="dropdown-item" id="themeMenuItem">🎨 装扮</div>
+    <div class="dropdown-item" id="aboutMenuItem">ℹ️ 关于</div>
+  </div>
 </header>
 
 <div class="tabs">
   <button class="tab-btn active" data-page="page1">🌐 网站收藏</button>
   <button class="tab-btn" data-page="page2">📋 复制内容</button>
+  <button class="tab-btn" data-page="page3">🔗 链接收藏</button>
 </div>
 
 <main>
   <!-- 页面一：网站收藏 -->
   <section id="page1" class="page active">
+    <div class="search-box">🔍 <input id="siteSearch" type="text" placeholder="搜索网站名字或网址..." /></div>
     <div class="add-card">
       <h2>添加网站</h2>
       <div class="row">
@@ -220,16 +340,17 @@
 
   <!-- 页面二：复制内容收藏 -->
   <section id="page2" class="page">
+    <div class="search-box">🔍 <input id="copySearch" type="text" placeholder="搜索复制内容..." /></div>
     <div class="add-card">
       <h2>添加复制内容</h2>
       <div class="row">
         <input id="copyName" type="text" placeholder="备注名字（如：常用签名）" />
       </div>
       <div class="copy-input-wrap">
-        <textarea id="copyContent" placeholder="输入要复制的内容（每条可单独复制）..."></textarea>
+        <textarea id="copyContent" placeholder="输入要复制的内容（每条用回车分隔）..."></textarea>
         <div class="copy-add-row">
-          <span class="hint">可输入多条，每条用回车分隔</span>
-          <button class="add-copy-btn" id="addCopyItemBtn">➕ 添加一条</button>
+          <span class="hint">每条用回车分隔，每条可单独复制</span>
+          <button class="add-copy-btn" id="addCopyItemBtn">➕ 添加一行</button>
         </div>
       </div>
       <div class="row" style="margin-top:10px; justify-content:flex-end;">
@@ -239,7 +360,64 @@
     <div class="list" id="copyList"></div>
     <div class="empty" id="copyEmpty">还没有复制内容哦～快添加一个吧 🌷</div>
   </section>
+
+  <!-- 页面三：链接收藏 -->
+  <section id="page3" class="page">
+    <div class="search-box">🔍 <input id="linkSearch" type="text" placeholder="搜索链接备注或网址..." /></div>
+    <div class="add-card">
+      <h2>添加链接</h2>
+      <div class="row">
+        <input id="linkName" type="text" placeholder="备注名字（如：猫咪图）" />
+        <input id="linkUrl" type="text" placeholder="URL（图片/视频/音频/网页均可）" />
+      </div>
+      <div class="row" style="margin-top:10px; justify-content:flex-end;">
+        <button class="btn btn-add" id="addLinkBtn">➕ 添加</button>
+      </div>
+    </div>
+    <div class="list" id="linkList"></div>
+    <div class="empty" id="linkEmpty">还没有收藏链接哦～快添加一个吧 🌼</div>
+  </section>
 </main>
+
+<!-- 编辑弹窗 -->
+<div class="modal-mask" id="editModal">
+  <div class="modal-content">
+    <button class="modal-close" id="editClose">×</button>
+    <h3>✏️ 编辑复制内容</h3>
+    <input class="edit-name-input" id="editName" type="text" placeholder="备注名字" />
+    <div id="editRows"></div>
+    <div class="row" style="justify-content:flex-end; margin-top:10px;">
+      <button class="btn btn-add" id="editAddRow" style="margin-right:auto;">➕ 加一行</button>
+      <button class="btn btn-add" id="editSave">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 装扮弹窗 -->
+<div class="modal-mask" id="themeModal">
+  <div class="modal-content">
+    <button class="modal-close" id="themeClose">×</button>
+    <h3>🎨 装扮</h3>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+</div>
+
+<!-- 关于弹窗 -->
+<div class="modal-mask" id="aboutModal">
+  <div class="modal-content">
+    <button class="modal-close" id="aboutClose">×</button>
+    <h3>ℹ️ 关于甜甜收藏夹</h3>
+    <p style="line-height:1.8; font-size:14px; margin-bottom:10px;">
+      一个可爱的本地收藏工具：<br>
+      🌐 网站收藏 — 点击打开<br>
+      📋 复制内容 — 逐条复制<br>
+      🔗 链接收藏 — 图片/视频/音频自动预览<br>
+      <br>
+      数据保存在你的浏览器本地（localStorage），不会上传到任何服务器，完全私密。<br>
+      清除浏览器数据会导致丢失，建议定期导出备份。
+    </p>
+  </div>
+</div>
 
 <div class="toast" id="toast">已复制 ✅</div>
 
@@ -247,30 +425,84 @@
 (function(){
   "use strict";
 
-  /* ===== 注册 Service Worker（让浏览器识别为可安装 PWA） ===== */
+  /* ===== 注册 Service Worker ===== */
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-      navigator.serviceWorker.register("service-worker.js")
-        .then(function(reg){ /* 注册成功，PWA 可被识别为可安装 */ })
-        .catch(function(){ /* 注册失败不影响页面正常使用 */ });
+      navigator.serviceWorker.register("service-worker.js").catch(function(){});
     });
   }
 
-  /* ===== 数据层（localStorage 永久保存） ===== */
-  var KEY_SITES = "tian_sites_v1";
+  /* ===== 主题数据（10 套） ===== */
+  var THEMES = [
+    { name:"马卡龙", bg:"#FFF7F0", card:"#ffffff", ink:"#6B5B5B", line:"#EADDDD",
+      c1:"#FFB3C6", c2:"#FFE6A7", c3:"#B5E2A5", c4:"#A7D8F0", c5:"#D9C2E0" },
+    { name:"薄荷曼波", bg:"#F9F4EA", card:"#ffffff", ink:"#8D6C63", line:"#E8DDD4",
+      c1:"#CFE4DD", c2:"#FCD3D5", c3:"#8D6C63", c4:"#CFE4DD", c5:"#F9F4EA" },
+    { name:"瓦尔登湖", bg:"#ECF7F4", card:"#ffffff", ink:"#2a5a6a", line:"#D4E8E2",
+      c1:"#CAEBED", c2:"#63BAD9", c3:"#B5DAE9", c4:"#63BAD9", c5:"#CCE7D9" },
+    { name:"美式复古", bg:"#ECF7F4", card:"#ffffff", ink:"#8D6C63", line:"#D4E8E2",
+      c1:"#CAEBED", c2:"#63BAD9", c3:"#B5DAE9", c4:"#8D6C63", c5:"#CCE7D9" },
+    { name:"先帝最爱", bg:"#EFE4D4", card:"#ffffff", ink:"#6B4550", line:"#E0D2C2",
+      c1:"#F5C7C9", c2:"#F8819B", c3:"#B9D9EA", c4:"#F8819B", c5:"#EFE4D4" },
+    { name:"青提芭乐", bg:"#F6FCE8", card:"#ffffff", ink:"#5a4a3a", line:"#E0E8CC",
+      c1:"#FED0D6", c2:"#FF82A2", c3:"#BDDE93", c4:"#FF82A2", c5:"#E4F6A9" },
+    { name:"椰风海岛", bg:"#E8F0F8", card:"#ffffff", ink:"#225DAB", line:"#D4E0EC",
+      c1:"#95B4E0", c2:"#225DAB", c3:"#CADEC3", c4:"#225DAB", c5:"#CBAF98" },
+    { name:"浮光跃金", bg:"#F5F1E4", card:"#ffffff", ink:"#5a5040", line:"#E0D8C8",
+      c1:"#C8D4C0", c2:"#F1D996", c3:"#799B84", c4:"#B69F8A", c5:"#C8D4C0" },
+    { name:"橘子汽水", bg:"#FFF8E8", card:"#ffffff", ink:"#5a4a2a", line:"#F0E0B8",
+      c1:"#FE8F29", c2:"#FAE593", c3:"#849C4D", c4:"#C5863C", c5:"#FAE593" },
+    { name:"海盐葡萄", bg:"#EFE4D4", card:"#ffffff", ink:"#302B58", line:"#DCD0E0",
+      c1:"#B6A9C8", c2:"#302B58", c3:"#9078AC", c4:"#9078AC", c5:"#EFE4D4" }
+  ];
+
+  /* ===== 数据层 ===== */
+  var KEY_SITES  = "tian_sites_v1";
   var KEY_COPIES = "tian_copies_v1";
+  var KEY_LINKS  = "tian_links_v1";
+  var KEY_THEME  = "tian_theme_v1";
+  var KEY_MODE   = "tian_mode_v1";
 
   function load(key){
-    try{ return JSON.parse(localStorage.getItem(key)) || []; }
-    catch(e){ return []; }
+    try{ return JSON.parse(localStorage.getItem(key)); }
+    catch(e){ return null; }
   }
-  function save(key, data){
-    localStorage.setItem(key, JSON.stringify(data));
-  }
+  function save(key, data){ localStorage.setItem(key, JSON.stringify(data)); }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
-  var sites = load(KEY_SITES);
-  var copies = load(KEY_COPIES);
+  var sites  = load(KEY_SITES)  || [];
+  var copies = load(KEY_COPIES) || [];
+  var links  = load(KEY_LINKS)  || [];
+
+  /* ===== 主题应用 ===== */
+  var currentTheme = load(KEY_THEME) || "马卡龙";
+  function applyTheme(name){
+    var t = THEMES.find(function(x){ return x.name === name; }) || THEMES[0];
+    var r = document.documentElement.style;
+    r.setProperty("--bg", t.bg);
+    r.setProperty("--card", t.card);
+    r.setProperty("--ink", t.ink);
+    r.setProperty("--line", t.line);
+    r.setProperty("--c1", t.c1);
+    r.setProperty("--c2", t.c2);
+    r.setProperty("--c3", t.c3);
+    r.setProperty("--c4", t.c4);
+    r.setProperty("--c5", t.c5);
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", t.c1);
+    currentTheme = t.name;
+    save(KEY_THEME, t.name);
+  }
+  applyTheme(currentTheme);
+
+  /* ===== 日夜模式 ===== */
+  var currentMode = load(KEY_MODE) || "light";
+  function applyMode(mode){
+    currentMode = mode;
+    document.body.classList.toggle("dark", mode === "dark");
+    $("modeBtn").textContent = mode === "dark" ? "🌙" : "☀️";
+    save(KEY_MODE, mode);
+  }
+  applyMode(currentMode);
 
   /* ===== DOM 辅助 ===== */
   function $(id){ return document.getElementById(id); }
@@ -285,35 +517,41 @@
     t._timer = setTimeout(function(){ t.classList.remove("show"); }, 1400);
   }
   function copyText(text){
-    // 优先用现代 API
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(function(){ toast("已复制 ✅"); })
         .catch(function(){ fallbackCopy(text); });
-    }else{
-      fallbackCopy(text);
-    }
+    }else{ fallbackCopy(text); }
   }
   function fallbackCopy(text){
     var ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed"; ta.style.left = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
+    ta.value = text; ta.style.position="fixed"; ta.style.left="-9999px";
+    document.body.appendChild(ta); ta.select();
     try{ document.execCommand("copy"); toast("已复制 ✅"); }
     catch(e){ toast("复制失败"); }
     document.body.removeChild(ta);
   }
   function openSite(url){
-    // 用默认浏览器打开：在浏览器中通过 window.open 实现
-    // 注意：受限于浏览器，可能仍在新标签页打开，而非系统默认浏览器
     try{
-      if(url && !/^https?:\/\//i.test(url) && !/^mailto:|^tel:/i.test(url)){
-        url = "https://" + url;
-      }
+      if(url && !/^https?:\/\//i.test(url) && !/^mailto:|^tel:/i.test(url)) url = "https://" + url;
       window.open(url, "_blank");
-    }catch(e){
-      window.location.href = url;
-    }
+    }catch(e){ window.location.href = url; }
+  }
+
+  /* ===== 链接类型识别 ===== */
+  function detectLinkType(url){
+    var u = (url||"").toLowerCase().split("?")[0].split("#")[0];
+    if(/\.(png|jpe?g|gif|webp|bmp|svg|ico|avif)(\?|$)/.test(u)) return "image";
+    if(/\.(mp4|webm|ogg|mov|m4v)(\?|$)/.test(u)) return "video";
+    if(/\.(mp3|wav|flac|aac|m4a|ogg|opus)(\?|$)/.test(u)) return "audio";
+    return "iframe";
+  }
+
+  /* ===== 搜索过滤辅助 ===== */
+  function matchItem(data, query){
+    if(!query) return true;
+    var q = query.toLowerCase();
+    var blob = JSON.stringify(data).toLowerCase();
+    return blob.indexOf(q) >= 0;
   }
 
   /* ===== 页面切换 ===== */
@@ -327,12 +565,71 @@
     });
   });
 
+  /* ===== 顶部菜单 ===== */
+  $("menuBtn").addEventListener("click", function(e){
+    e.stopPropagation();
+    $("topMenu").classList.toggle("show");
+  });
+  document.addEventListener("click", function(){ $("topMenu").classList.remove("show"); });
+  $("themeMenuItem").addEventListener("click", function(){
+    $("topMenu").classList.remove("show");
+    openThemeModal();
+  });
+  $("aboutMenuItem").addEventListener("click", function(){
+    $("topMenu").classList.remove("show");
+    $("aboutModal").classList.add("show");
+  });
+
+  /* ===== 日夜切换 ===== */
+  $("modeBtn").addEventListener("click", function(){
+    applyMode(currentMode === "dark" ? "light" : "dark");
+  });
+
+  /* ===== 装扮弹窗 ===== */
+  function openThemeModal(){
+    var grid = $("themeGrid");
+    grid.innerHTML = "";
+    THEMES.forEach(function(t){
+      var chip = document.createElement("div");
+      chip.className = "theme-chip" + (t.name === currentTheme ? " active" : "");
+      chip.innerHTML =
+        '<div class="colors">' +
+          '<span style="background:'+t.c1+'"></span>' +
+          '<span style="background:'+t.c2+'"></span>' +
+          '<span style="background:'+t.c3+'"></span>' +
+          '<span style="background:'+t.c4+'"></span>' +
+        '</div>' +
+        '<div class="tname">'+esc(t.name)+'</div>';
+      chip.addEventListener("click", function(){
+        applyTheme(t.name);
+        document.querySelectorAll(".theme-chip").forEach(function(c){ c.classList.remove("active"); });
+        chip.classList.add("active");
+        toast("装扮已切换 ✨");
+      });
+      grid.appendChild(chip);
+    });
+    $("themeModal").classList.add("show");
+  }
+
+  /* ===== 弹窗通用关闭 ===== */
+  [$("editClose"),$("themeClose"),$("aboutClose")].forEach(function(btn){
+    btn.addEventListener("click", function(){
+      btn.closest(".modal-mask").classList.remove("show");
+    });
+  });
+  document.querySelectorAll(".modal-mask").forEach(function(m){
+    m.addEventListener("click", function(e){
+      if(e.target === m) m.classList.remove("show");
+    });
+  });
+
   /* ===== 页面一：网站收藏 ===== */
   function renderSites(){
-    var list = $("siteList");
-    list.innerHTML = "";
-    $("siteEmpty").style.display = sites.length ? "none" : "block";
-    sites.forEach(function(s){
+    var list = $("siteList"); list.innerHTML = "";
+    var q = $("siteSearch").value.trim();
+    var shown = sites.filter(function(s){ return matchItem(s, q); });
+    $("siteEmpty").style.display = shown.length ? "none" : "block";
+    shown.forEach(function(s){
       var div = document.createElement("div");
       div.className = "item";
       div.innerHTML =
@@ -352,6 +649,7 @@
       list.appendChild(div);
     });
   }
+  $("siteSearch").addEventListener("input", renderSites);
   $("addSiteBtn").addEventListener("click", function(){
     var name = $("siteName").value.trim();
     var url = $("siteUrl").value.trim();
@@ -363,12 +661,13 @@
     renderSites(); toast("已添加 ➕");
   });
 
-  /* ===== 页面二：复制内容收藏 ===== */
+  /* ===== 页面二：复制内容收藏（含编辑） ===== */
   function renderCopies(){
-    var list = $("copyList");
-    list.innerHTML = "";
-    $("copyEmpty").style.display = copies.length ? "none" : "block";
-    copies.forEach(function(c){
+    var list = $("copyList"); list.innerHTML = "";
+    var q = $("copySearch").value.trim();
+    var shown = copies.filter(function(c){ return matchItem(c, q); });
+    $("copyEmpty").style.display = shown.length ? "none" : "block";
+    shown.forEach(function(c){
       var div = document.createElement("div");
       div.className = "item";
       var itemsHtml = "";
@@ -379,22 +678,21 @@
             '<button class="btn-mini" data-cidx="' + idx + '">📋 复制</button>' +
           '</div>';
       });
-      if(!itemsHtml){
-        itemsHtml = '<div class="item-meta">（暂无内容）</div>';
-      }
+      if(!itemsHtml) itemsHtml = '<div class="item-meta">（暂无内容）</div>';
       div.innerHTML =
         '<div class="item-name">📋 ' + esc(c.name) + '</div>' +
         '<div class="copy-list">' + itemsHtml + '</div>' +
         '<div class="item-actions" style="margin-top:8px;">' +
+          '<button class="btn btn-edit" data-act="edit">✏️ 编辑</button>' +
           '<button class="btn btn-del" data-act="del">🗑 删除</button>' +
         '</div>';
-      // 绑定每个复制按钮
       div.querySelectorAll(".btn-mini").forEach(function(b){
         b.addEventListener("click", function(){
           var idx = parseInt(b.getAttribute("data-cidx"), 10);
           copyText(c.items[idx]);
         });
       });
+      div.querySelector('[data-act="edit"]').addEventListener("click", function(){ openEditModal(c.id); });
       div.querySelector('[data-act="del"]').addEventListener("click", function(){
         if(confirm("删除「" + c.name + "」？")){
           copies = copies.filter(function(x){ return x.id !== c.id; });
@@ -404,31 +702,126 @@
       list.appendChild(div);
     });
   }
-  // 保存一个复制内容条目（自动按行拆分多条）
+  $("copySearch").addEventListener("input", renderCopies);
   $("addCopyBtn").addEventListener("click", function(){
     var name = $("copyName").value.trim();
     var content = $("copyContent").value;
     if(!name){ toast("请填写备注名字"); $("copyName").focus(); return; }
     if(!content.trim()){ toast("请填写内容"); $("copyContent").focus(); return; }
-    var items = content.split(/\r?\n/).map(function(s){ return s; }).filter(function(s){ return s.trim() !== ""; });
+    var items = content.split(/\r?\n/).filter(function(s){ return s.trim() !== ""; });
     if(items.length === 0){ toast("没有有效内容"); return; }
     copies.push({ id: uid(), name: name, items: items });
     save(KEY_COPIES, copies);
     $("copyName").value = ""; $("copyContent").value = "";
     renderCopies(); toast("已保存 💾");
   });
-  // “添加一条”按钮：在文本框追加一个占位，方便分条
   $("addCopyItemBtn").addEventListener("click", function(){
     var ta = $("copyContent");
     if(ta.value && !ta.value.endsWith("\n")) ta.value += "\n";
-    ta.value += "新内容" + (ta.value.split(/\r?\n/).length) + "\n";
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+
+  /* ===== 编辑弹窗 ===== */
+  var editingId = null;
+  function openEditModal(id){
+    var c = copies.find(function(x){ return x.id === id; });
+    if(!c) return;
+    editingId = id;
+    $("editName").value = c.name;
+    var rows = $("editRows"); rows.innerHTML = "";
+    (c.items || []).forEach(function(txt){ addEditRow(txt); });
+    if(rows.children.length === 0) addEditRow("");
+    $("editModal").classList.add("show");
+  }
+  function addEditRow(text){
+    var wrap = document.createElement("div");
+    wrap.className = "edit-row";
+    wrap.innerHTML = '<textarea></textarea><button class="btn-mini" title="删除此行">×</button>';
+    wrap.querySelector("textarea").value = text || "";
+    wrap.querySelector(".btn-mini").addEventListener("click", function(){ wrap.remove(); });
+    $("editRows").appendChild(wrap);
+  }
+  $("editAddRow").addEventListener("click", function(){ addEditRow(""); });
+  $("editSave").addEventListener("click", function(){
+    var name = $("editName").value.trim();
+    if(!name){ toast("请填写备注名字"); return; }
+    var items = [];
+    $("editRows").querySelectorAll("textarea").forEach(function(ta){
+      if(ta.value.trim() !== "") items.push(ta.value);
+    });
+    if(items.length === 0){ toast("至少保留一条内容"); return; }
+    var idx = copies.findIndex(function(x){ return x.id === editingId; });
+    if(idx >= 0){
+      copies[idx].name = name;
+      copies[idx].items = items;
+      save(KEY_COPIES, copies);
+      renderCopies();
+      $("editModal").classList.remove("show");
+      toast("已更新 ✨");
+    }
+  });
+
+  /* ===== 页面三：链接收藏（自动预览） ===== */
+  function renderLinks(){
+    var list = $("linkList"); list.innerHTML = "";
+    var q = $("linkSearch").value.trim();
+    var shown = links.filter(function(l){ return matchItem(l, q); });
+    $("linkEmpty").style.display = shown.length ? "none" : "block";
+    shown.forEach(function(l){
+      var div = document.createElement("div");
+      div.className = "item";
+      var type = detectLinkType(l.url);
+      var previewHtml = "";
+      if(type === "image"){
+        previewHtml = '<img src="'+esc(l.url)+'" alt="预览" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
+                       '<div class="preview-fail" style="display:none;">图片加载失败，点击链接查看</div>';
+      }else if(type === "video"){
+        previewHtml = '<video src="'+esc(l.url)+'" controls preload="metadata"></video>';
+      }else if(type === "audio"){
+        previewHtml = '<audio src="'+esc(l.url)+'" controls preload="metadata"></audio>';
+      }else{
+        // 普通网页：用 iframe 尝试预览，失败显示链接
+        previewHtml = '<iframe src="'+esc(l.url)+'" sandbox="allow-scripts allow-same-origin" loading="lazy" ' +
+                       'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"></iframe>' +
+                       '<div class="preview-fail" style="display:none;">该网页禁止嵌入预览，请点击链接在新窗口打开</div>';
+      }
+      div.innerHTML =
+        '<div class="item-name">🔗 ' + esc(l.name) + '</div>' +
+        '<div class="link-url">' + esc(l.url) + '</div>' +
+        '<div class="item-actions">' +
+          '<button class="btn btn-copy" data-act="copy">📋 复制链接</button>' +
+          '<button class="btn btn-open" data-act="open">🔗 打开</button>' +
+          '<button class="btn btn-del" data-act="del">🗑 删除</button>' +
+        '</div>' +
+        '<div class="link-preview">' + previewHtml + '</div>';
+      div.querySelector('[data-act="copy"]').addEventListener("click", function(){ copyText(l.url); });
+      div.querySelector('[data-act="open"]').addEventListener("click", function(){ openSite(l.url); });
+      div.querySelector('[data-act="del"]').addEventListener("click", function(){
+        if(confirm("删除「" + l.name + "」？")){
+          links = links.filter(function(x){ return x.id !== l.id; });
+          save(KEY_LINKS, links); renderLinks(); toast("已删除 🗑");
+        }
+      });
+      list.appendChild(div);
+    });
+  }
+  $("linkSearch").addEventListener("input", renderLinks);
+  $("addLinkBtn").addEventListener("click", function(){
+    var name = $("linkName").value.trim();
+    var url = $("linkUrl").value.trim();
+    if(!name){ toast("请填写备注名字"); $("linkName").focus(); return; }
+    if(!url){ toast("请填写 URL"); $("linkUrl").focus(); return; }
+    links.push({ id: uid(), name: name, url: url });
+    save(KEY_LINKS, links);
+    $("linkName").value = ""; $("linkUrl").value = "";
+    renderLinks(); toast("已添加 ➕");
   });
 
   /* ===== 初始渲染 ===== */
   renderSites();
   renderCopies();
+  renderLinks();
 })();
 </script>
 </body>
